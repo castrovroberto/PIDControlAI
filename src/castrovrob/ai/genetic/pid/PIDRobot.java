@@ -22,9 +22,10 @@ public class PIDRobot extends SimulationBody implements Runnable{
 
     public PIDRobot(World mWorld){
         circle = new SimulationBody();
-        circle.addFixture(Geometry.createCircle(1.0));
+        circle.addFixture(Geometry.createCircle(1.0),1.0,1.0,1.0);
         circle.setMass(MassType.NORMAL);
         circle.translate(0.0,0.0);
+        circle.setAngularDamping(10.0);
 
         stick = new SimulationBody();
         stick.addFixture(Geometry.createRectangle(0.1, 3.75));
@@ -35,7 +36,7 @@ public class PIDRobot extends SimulationBody implements Runnable{
         circleToStick.setLimitEnabled(false);
         circleToStick.setLimits(Math.toRadians(0.0), Math.toRadians(0.0));
         circleToStick.setReferenceAngle(Math.toRadians(0.0));
-        circleToStick.setMotorEnabled(false);
+        circleToStick.setMotorEnabled(true);
         circleToStick.setMotorSpeed(Math.toRadians(0.0));
         circleToStick.setMaximumMotorTorque(0.0);
 
@@ -48,7 +49,7 @@ public class PIDRobot extends SimulationBody implements Runnable{
 
     public void PIDControl(){
         double offset = 0.0;
-        double normalValue = Math.toDegrees(stick.getRotationDiscRadius());
+        double normalValue = Math.toDegrees(stick.getChangeInOrientation());
 
         double proportionalError = 0.0;
         proportionalError = normalValue - offset;
@@ -62,8 +63,11 @@ public class PIDRobot extends SimulationBody implements Runnable{
         double pidValue = PROPORTIONAL_CONST * proportionalError + INTEGRAL_CONST * integralError + DERIVATIVE_CONST * derivativeError;
         this.previousError = proportionalError;
 
-        this.circleToStick.setMaximumMotorTorque(pidValue);
+        //this.circleToStick.setMaximumMotorTorque(pidValue);
         //this.circleToStick.setMotorSpeed(pidValue);
+
+        //this.circle.applyTorque(pidValue);
+        this.circle.setAngularVelocity(pidValue);
     }
 
     public void disposeRobot(){
@@ -75,7 +79,7 @@ public class PIDRobot extends SimulationBody implements Runnable{
         try {
             while (isRunning) {
                 this.PIDControl();
-                Thread.sleep(200);
+                Thread.sleep(100);
             }
         }catch(InterruptedException interruptedException){
             interruptedException.printStackTrace();

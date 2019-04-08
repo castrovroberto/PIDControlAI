@@ -23,8 +23,9 @@ public class RobotParty extends SimulationFrame{
 
     private void createGround(){
         SimulationBody ground = new SimulationBody();
-        ground.addFixture(Geometry.createRectangle(15.0, 1.0));
+        ground.addFixture(Geometry.createRectangle(15.0, 1.0),1.0, 1.0, 1.0);
         ground.translate(0.0, -3.5);
+
         this.world.addBody(ground);
     }
 
