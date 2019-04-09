@@ -7,8 +7,7 @@ import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 
-public class PIDRobot extends SimulationBody implements Runnable{
-    private boolean isRunning = true;
+public class PIDRobot extends SimulationBody {
 
     private SimulationBody circle;
     private SimulationBody stick;
@@ -22,7 +21,7 @@ public class PIDRobot extends SimulationBody implements Runnable{
 
     public PIDRobot(World mWorld){
         circle = new SimulationBody();
-        circle.addFixture(Geometry.createCircle(1.0),1.0,1.0,1.0);
+        circle.addFixture(Geometry.createCircle(1.0),1.0,10.0,1.0);
         circle.setMass(MassType.NORMAL);
         circle.translate(0.0,0.0);
         circle.setAngularDamping(10.0);
@@ -49,41 +48,22 @@ public class PIDRobot extends SimulationBody implements Runnable{
 
     public void PIDControl(){
         double offset = 0.0;
-        double normalValue = Math.toDegrees(stick.getChangeInOrientation());
+        double normalValue;
+        normalValue = Math.toDegrees(stick.getTransform().getRotation());
 
-        double proportionalError = 0.0;
+        double proportionalError;
         proportionalError = normalValue - offset;
 
         double integralError = 0.0;
         integralError = ((integralError + proportionalError) * 2 / 3);
 
-        double derivativeError = 0.0;
+        double derivativeError;
         derivativeError = proportionalError - this.previousError;
 
         double pidValue = PROPORTIONAL_CONST * proportionalError + INTEGRAL_CONST * integralError + DERIVATIVE_CONST * derivativeError;
         this.previousError = proportionalError;
 
-        //this.circleToStick.setMaximumMotorTorque(pidValue);
-        //this.circleToStick.setMotorSpeed(pidValue);
-
-        //this.circle.applyTorque(pidValue);
-        this.circle.setAngularVelocity(pidValue);
-    }
-
-    public void disposeRobot(){
-        this.isRunning = false;
-    }
-
-    @Override
-    public void run(){
-        try {
-            while (isRunning) {
-                this.PIDControl();
-                Thread.sleep(100);
-            }
-        }catch(InterruptedException interruptedException){
-            interruptedException.printStackTrace();
-        }
+        this.circle.applyTorque(pidValue);
     }
 
 }
